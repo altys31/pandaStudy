@@ -1,89 +1,81 @@
-import { createContext, useContext, useMemo } from "react";
+import { useState } from "react";
 import { sva } from "../../../styled-system/css";
 import { css } from "../../../styled-system/css";
 import { cx } from "../../../styled-system/css";
+import type { RecipeVariant } from "../../../styled-system/types/recipe";
 import { type HTMLAttributes } from "react";
 
-// ✅ Slot Recipe 정의
-const cardSlotRecipe = sva({
-  slots: ["root", "header", "body", "footer"],
+// ✅ Step 1: Tabs Slot Recipe 정의
+const tabsSlotRecipe = sva({
+  slots: ["root", "list", "trigger", "content", "indicator"],
   base: {
     root: {
-      p: "24px",
-      bg: "white",
-      rounded: "12px",
-      border: "1px solid",
-      borderColor: "gray.200",
-      transition: "all 0.2s",
+      w: "100%",
     },
-    header: {
-      pb: "16px",
-      mb: "16px",
-      borderBottom: "1px solid",
-      borderColor: "gray.200",
-    },
-    body: {
-      mb: "16px",
-    },
-    footer: {
-      pt: "16px",
-      borderTop: "1px solid",
-      borderColor: "gray.200",
+    list: {
       display: "flex",
-      gap: "8px",
+      gap: "4px",
+      borderBottom: "2px solid",
+      borderColor: "gray.200",
+      position: "relative",
+    },
+    trigger: {
+      px: "16px",
+      py: "12px",
+      fontSize: "14px",
+      fontWeight: "500",
+      color: "gray.600",
+      bg: "transparent",
+      border: "none",
+      cursor: "pointer",
+      position: "relative",
+      transition: "all 0.2s",
+      _hover: {
+        color: "gray.900",
+      },
+    },
+    content: {
+      p: "24px",
+    },
+    indicator: {
+      position: "absolute",
+      bottom: "-2px",
+      h: "2px",
+      bg: "blue.500",
+      transition: "all 0.2s",
     },
   },
   variants: {
     variant: {
-      default: {
-        root: {
-          boxShadow: "sm",
+      default: {},
+      enclosed: {
+        list: {
+          border: "1px solid",
+          borderColor: "gray.200",
+          rounded: "8px",
+          borderBottom: "1px solid",
         },
-      },
-      elevated: {
-        root: {
-          boxShadow: "md",
-          _hover: {
-            boxShadow: "lg",
-            transform: "translateY(-2px)",
+        trigger: {
+          rounded: "8px",
+          _selected: {
+            bg: "blue.50",
+            color: "blue.600",
           },
-        },
-      },
-      outlined: {
-        root: {
-          boxShadow: "none",
-          borderWidth: "2px",
         },
       },
     },
     size: {
       sm: {
-        root: { p: "16px" },
-        header: { pb: "12px", mb: "12px" },
-        body: { mb: "12px" },
-        footer: { pt: "12px" },
+        trigger: { px: "12px", py: "8px", fontSize: "12px" },
+        content: { p: "16px" },
       },
       md: {
-        root: { p: "24px" },
-        header: { pb: "16px", mb: "16px" },
-        body: { mb: "16px" },
-        footer: { pt: "16px" },
+        trigger: { px: "16px", py: "12px", fontSize: "14px" },
+        content: { p: "24px" },
       },
       lg: {
-        root: { p: "32px" },
-        header: { pb: "20px", mb: "20px" },
-        body: { mb: "20px" },
-        footer: { pt: "20px" },
-      },
-    },
-    interactive: {
-      true: {
-        root: {
-          cursor: "pointer",
-          _hover: {
-            borderColor: "blue.500",
-          },
-        },
+        trigger: { px: "20px", py: "16px", fontSize: "16px" },
+        content: { p: "32px" },
       },
     },
   },
@@ -93,160 +85,155 @@ const cardSlotRecipe = sva({
   },
 });
 
-// ============================================
-// ✅ 고려사항 1: Context를 사용한 Variants 공유
-// ============================================
-// 여러 slot 컴포넌트가 동일한 variants를 공유해야 할 때 Context 사용
+// ✅ Step 2: Props Interface 정의
+// RecipeVariant를 사용하여 타입을 자동으로 추론
+type TabsVariant = RecipeVariant<typeof tabsSlotRecipe>;
 
-type CardContextValue = {
-  variant?: "default" | "elevated" | "outlined";
-  size?: "sm" | "md" | "lg";
-  interactive?: boolean;
-};
-
-const CardContext = createContext<CardContextValue | undefined>(undefined);
-
-const useCardContext = () => {
-  const context = useContext(CardContext);
-  if (!context) {
-    throw new Error("Card slot components must be used within Card");
-  }
-  return context;
-};
-
-// ============================================
-// ✅ 고려사항 2: 메인 컴포넌트 (Root)
-// ============================================
-// Root 컴포넌트는 variants를 받아서 Context로 전달하고, styles를 계산
-
-interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "elevated" | "outlined";
-  size?: "sm" | "md" | "lg";
-  interactive?: boolean;
+interface TabData {
+  id: string;
+  label: string;
+  content: React.ReactNode;
 }
 
-export const Card = ({
+interface DataTabsProps extends HTMLAttributes<HTMLDivElement> {
+  // ✅ Step 8: Recipe Variants 지원
+  variant?: TabsVariant["variant"];
+  size?: TabsVariant["size"];
+  // ✅ Step 4: 동적 데이터를 위한 props
+  data: TabData[];
+  // ✅ Step 6: 커스터마이제이션을 위한 추가 props
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
+}
+
+// ============================================
+// ✅ Step 3: DataTabs 컴포넌트 정의
+// ============================================
+// 하드코딩된 값을 제거하고 동적으로 렌더링
+
+export const DataTabs = ({
+  data,
   variant = "default",
   size = "md",
-  interactive = false,
+  defaultValue,
+  onValueChange,
   className,
-  children,
   ...props
-}: CardProps) => {
-  // ✅ 고려사항 3: useMemo로 스타일 계산 최적화
-  // variants가 변경될 때만 재계산
-  const styles = useMemo(
-    () => cardSlotRecipe({ variant, size, interactive }),
-    [variant, size, interactive]
-  );
+}: DataTabsProps) => {
+  // ✅ Step 9: Recipe Props 분리
+  // splitVariantProps를 사용하여 recipe props와 다른 props를 분리
+  const [recipeProps, restProps] = tabsSlotRecipe.splitVariantProps({
+    variant,
+    size,
+    ...props,
+  });
 
-  const contextValue = useMemo(
-    () => ({ variant, size, interactive }),
-    [variant, size, interactive]
-  );
+  const styles = tabsSlotRecipe(recipeProps);
+  const [activeTab, setActiveTab] = useState(defaultValue || data[0]?.id || "");
 
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    onValueChange?.(tabId);
+  };
+
+  // ✅ Step 5: 동적 탭 콘텐츠 렌더링
+  // 데이터를 map하여 동적으로 탭과 콘텐츠를 렌더링
   return (
-    <CardContext.Provider value={contextValue}>
-      <div className={cx(styles.root, className)} {...props}>
-        {children}
+    <div className={cx(styles.root, className)} {...restProps}>
+      <div className={styles.list}>
+        {data.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => handleTabChange(tab.id)}
+            className={cx(
+              styles.trigger,
+              activeTab === tab.id &&
+                css({
+                  color: "blue.600",
+                  fontWeight: "600",
+                  _after: {
+                    content: '""',
+                    position: "absolute",
+                    bottom: "-2px",
+                    left: "0",
+                    right: "0",
+                    h: "2px",
+                    bg: "blue.500",
+                  },
+                })
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
-    </CardContext.Provider>
-  );
-};
-
-// ============================================
-// ✅ 고려사항 4: Slot 컴포넌트들
-// ============================================
-// 각 slot 컴포넌트는 Context에서 variants를 가져와서 스타일 적용
-
-export const CardHeader = ({
-  className,
-  children,
-  ...props
-}: HTMLAttributes<HTMLDivElement>) => {
-  const { variant, size } = useCardContext();
-  const styles = cardSlotRecipe({ variant, size });
-  return (
-    <div className={cx(styles.header, className)} {...props}>
-      {children}
+      <div className={styles.content}>
+        {data.find((tab) => tab.id === activeTab)?.content}
+      </div>
     </div>
   );
 };
-
-export const CardBody = ({
-  className,
-  children,
-  ...props
-}: HTMLAttributes<HTMLDivElement>) => {
-  const { variant, size } = useCardContext();
-  const styles = cardSlotRecipe({ variant, size });
-  return (
-    <div className={cx(styles.body, className)} {...props}>
-      {children}
-    </div>
-  );
-};
-
-export const CardFooter = ({
-  className,
-  children,
-  ...props
-}: HTMLAttributes<HTMLDivElement>) => {
-  const { variant, size } = useCardContext();
-  const styles = cardSlotRecipe({ variant, size });
-  return (
-    <div className={cx(styles.footer, className)} {...props}>
-      {children}
-    </div>
-  );
-};
-
-// ============================================
-// ✅ 고려사항 5: 대안 - Props 직접 전달 방식
-// ============================================
-// Context 대신 각 slot 컴포넌트에 props로 직접 전달하는 방식
-// 더 명시적이지만 props drilling이 발생할 수 있음
-
-interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "elevated" | "outlined";
-  size?: "sm" | "md" | "lg";
-}
-
-export const CardHeaderDirect = ({
-  variant = "default",
-  size = "md",
-  className,
-  children,
-  ...props
-}: CardHeaderProps) => {
-  const styles = cardSlotRecipe({ variant, size });
-  return (
-    <div className={cx(styles.header, className)} {...props}>
-      {children}
-    </div>
-  );
-};
-
-// ============================================
-// ✅ 고려사항 6: 복합 컴포넌트 패턴
-// ============================================
-// Card.Header, Card.Body 같은 네임스페이스 패턴 사용
-
-export const CardComposition = Card as typeof Card & {
-  Header: typeof CardHeader;
-  Body: typeof CardBody;
-  Footer: typeof CardFooter;
-};
-
-CardComposition.Header = CardHeader;
-CardComposition.Body = CardBody;
-CardComposition.Footer = CardFooter;
 
 // ============================================
 // ✅ 사용 예제 컴포넌트
 // ============================================
 
 export const ConvertingToJSXcomp = () => {
+  // ✅ Step 5: 데이터 정의 및 컴포넌트에 전달
+  const tabsData: TabData[] = [
+    {
+      id: "tab1",
+      label: "Overview",
+      content: (
+        <div>
+          <h3
+            className={css({ fontSize: "18px", fontWeight: "600", mb: "12px" })}
+          >
+            Overview Content
+          </h3>
+          <p className={css({ color: "gray.600" })}>
+            This is the overview tab content. It's dynamically rendered from the
+            data array.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: "tab2",
+      label: "Analytics",
+      content: (
+        <div>
+          <h3
+            className={css({ fontSize: "18px", fontWeight: "600", mb: "12px" })}
+          >
+            Analytics Content
+          </h3>
+          <p className={css({ color: "gray.600" })}>
+            This is the analytics tab content. The content is passed as part of
+            the data structure.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: "tab3",
+      label: "Reports",
+      content: (
+        <div>
+          <h3
+            className={css({ fontSize: "18px", fontWeight: "600", mb: "12px" })}
+          >
+            Reports Content
+          </h3>
+          <p className={css({ color: "gray.600" })}>
+            This is the reports tab content. All tabs are rendered dynamically
+            from the data array.
+          </p>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className={css({ p: "24px", maxW: "1200px", mx: "auto" })}>
       <h1 className={css({ fontSize: "32px", fontWeight: "bold", mb: "32px" })}>
@@ -258,28 +245,441 @@ export const ConvertingToJSXcomp = () => {
         <h2
           className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
         >
-          변환 시 고려해야 할 주요 사항
+          변환 단계
         </h2>
         <p className={css({ mb: "16px", color: "#666", lineHeight: "1.6" })}>
-          Slot Recipes를 React 컴포넌트로 변환할 때는 여러 가지 중요한
-          고려사항이 있습니다. 각 고려사항을 이해하고 적절히 적용하면 더 나은
-          컴포넌트를 만들 수 있습니다.
+          Slot Recipe를 재사용 가능한 컴포넌트로 변환하는 단계별 과정을
+          설명합니다.
         </p>
+        <ol
+          className={css({
+            listStyle: "decimal",
+            ml: "24px",
+            spaceY: "8px",
+            textAlign: "left",
+          })}
+        >
+          <li>Tabs 컴포넌트 생성</li>
+          <li>DataTabs 컴포넌트 정의 및 하드코딩된 값 제거</li>
+          <li>Props Interface 정의</li>
+          <li>동적 탭 콘텐츠 렌더링</li>
+          <li>컴포넌트에 데이터 전달</li>
+          <li>커스터마이제이션 Props 노출</li>
+          <li>추가 Props 처리</li>
+          <li>Recipe Variants 지원</li>
+          <li>Recipe Props 분리 (splitVariantProps)</li>
+        </ol>
       </section>
 
-      {/* 고려사항 1: Context를 사용한 Variants 공유 */}
+      {/* Step 1: Tabs 컴포넌트 생성 */}
       <section className={css({ mb: "48px" })}>
         <h2
           className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
         >
-          1. Context를 사용한 Variants 공유
+          Step 1: Tabs Slot Recipe 정의
         </h2>
         <p className={css({ mb: "16px", color: "#666" })}>
-          여러 slot 컴포넌트가 동일한 variants를 공유해야 할 때 Context를
-          사용합니다. 이렇게 하면 props drilling을 피하고, 일관성을 유지할 수
-          있습니다.
+          먼저 <code>sva()</code>를 사용하여 Tabs의 slot recipe를 정의합니다.
         </p>
+        <div
+          className={css({
+            p: "16px",
+            bg: "gray.900",
+            color: "green.400",
+            rounded: "8px",
+            fontSize: "12px",
+            overflowX: "auto",
+            textAlign: "left",
+            mb: "24px",
+          })}
+        >
+          <pre>
+            {`const tabsSlotRecipe = sva({
+  slots: ["root", "list", "trigger", "content", "indicator"],
+  base: {
+    root: { /* ... */ },
+    list: { /* ... */ },
+    trigger: { /* ... */ },
+    content: { /* ... */ },
+  },
+  variants: {
+    variant: { default: {}, enclosed: {} },
+    size: { sm: {}, md: {}, lg: {} },
+  },
+});`}
+          </pre>
+        </div>
+      </section>
 
+      {/* Step 2: Props Interface 정의 */}
+      <section className={css({ mb: "48px" })}>
+        <h2
+          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
+        >
+          Step 2: Props Interface 정의
+        </h2>
+        <p className={css({ mb: "16px", color: "#666" })}>
+          <code>RecipeVariant</code>를 사용하여 타입을 자동으로 추론하고,
+          데이터와 커스터마이제이션을 위한 props를 정의합니다.
+        </p>
+        <div
+          className={css({
+            p: "16px",
+            bg: "gray.900",
+            color: "green.400",
+            rounded: "8px",
+            fontSize: "12px",
+            overflowX: "auto",
+            textAlign: "left",
+            mb: "24px",
+          })}
+        >
+          <pre>
+            {`import type { RecipeVariant } from "../../../styled-system/types/recipe";
+
+type TabsVariant = RecipeVariant<typeof tabsSlotRecipe>;
+
+interface TabData {
+  id: string;
+  label: string;
+  content: React.ReactNode;
+}
+
+interface DataTabsProps extends HTMLAttributes<HTMLDivElement> {
+  variant?: TabsVariant["variant"];
+  size?: TabsVariant["size"];
+  data: TabData[];
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
+}`}
+          </pre>
+        </div>
+      </section>
+
+      {/* Step 3: DataTabs 컴포넌트 정의 */}
+      <section className={css({ mb: "48px" })}>
+        <h2
+          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
+        >
+          Step 3: DataTabs 컴포넌트 정의
+        </h2>
+        <p className={css({ mb: "16px", color: "#666" })}>
+          하드코딩된 값을 제거하고 동적으로 데이터를 받아서 렌더링하는
+          컴포넌트를 만듭니다.
+        </p>
+        <div
+          className={css({
+            p: "16px",
+            bg: "gray.900",
+            color: "green.400",
+            rounded: "8px",
+            fontSize: "12px",
+            overflowX: "auto",
+            textAlign: "left",
+            mb: "24px",
+          })}
+        >
+          <pre>
+            {`export const DataTabs = ({
+  data,
+  variant = "default",
+  size = "md",
+  defaultValue,
+  onValueChange,
+  className,
+  ...props
+}: DataTabsProps) => {
+  // splitVariantProps로 recipe props 분리
+  const [recipeProps, restProps] = tabsSlotRecipe.splitVariantProps({
+    variant,
+    size,
+    ...props,
+  });
+
+  const styles = tabsSlotRecipe(recipeProps);
+  // ... 동적 렌더링 로직
+};`}
+          </pre>
+        </div>
+      </section>
+
+      {/* Step 4: 동적 탭 콘텐츠 렌더링 */}
+      <section className={css({ mb: "48px" })}>
+        <h2
+          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
+        >
+          Step 4: 동적 탭 콘텐츠 렌더링
+        </h2>
+        <p className={css({ mb: "16px", color: "#666" })}>
+          데이터 배열을 <code>map()</code>하여 동적으로 탭과 콘텐츠를
+          렌더링합니다.
+        </p>
+        <div
+          className={css({
+            p: "16px",
+            bg: "gray.900",
+            color: "green.400",
+            rounded: "8px",
+            fontSize: "12px",
+            overflowX: "auto",
+            textAlign: "left",
+            mb: "24px",
+          })}
+        >
+          <pre>
+            {`// 데이터를 map하여 동적으로 렌더링
+<div className={styles.list}>
+  {data.map((tab) => (
+    <button
+      key={tab.id}
+      onClick={() => handleTabChange(tab.id)}
+      className={styles.trigger}
+    >
+      {tab.label}
+    </button>
+  ))}
+</div>
+<div className={styles.content}>
+  {data.find((tab) => tab.id === activeTab)?.content}
+</div>`}
+          </pre>
+        </div>
+      </section>
+
+      {/* Step 5: 컴포넌트에 데이터 전달 */}
+      <section className={css({ mb: "48px" })}>
+        <h2
+          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
+        >
+          Step 5: 컴포넌트에 데이터 전달
+        </h2>
+        <p className={css({ mb: "16px", color: "#666" })}>
+          데이터 배열을 정의하고 컴포넌트에 전달합니다.
+        </p>
+        <div
+          className={css({
+            p: "16px",
+            bg: "gray.900",
+            color: "green.400",
+            rounded: "8px",
+            fontSize: "12px",
+            overflowX: "auto",
+            textAlign: "left",
+            mb: "24px",
+          })}
+        >
+          <pre>
+            {`const tabsData: TabData[] = [
+  {
+    id: "tab1",
+    label: "Overview",
+    content: <div>Overview Content</div>,
+  },
+  {
+    id: "tab2",
+    label: "Analytics",
+    content: <div>Analytics Content</div>,
+  },
+];
+
+<DataTabs data={tabsData} variant="default" size="md" />`}
+          </pre>
+        </div>
+
+        {/* 실제 사용 예제 */}
+        <div
+          className={css({
+            p: "24px",
+            bg: "gray.50",
+            rounded: "12px",
+            border: "1px solid",
+            borderColor: "gray.200",
+            mb: "24px",
+          })}
+        >
+          <DataTabs data={tabsData} variant="default" size="md" />
+        </div>
+      </section>
+
+      {/* Step 6: 커스터마이제이션 Props 노출 */}
+      <section className={css({ mb: "48px" })}>
+        <h2
+          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
+        >
+          Step 6: 커스터마이제이션 Props 노출
+        </h2>
+        <p className={css({ mb: "16px", color: "#666" })}>
+          컴포넌트를 확장 가능하게 만들기 위해 추가 props를 노출합니다. (예:
+          <code>defaultValue</code>, <code>onValueChange</code>)
+        </p>
+        <div
+          className={css({
+            p: "16px",
+            bg: "gray.900",
+            color: "green.400",
+            rounded: "8px",
+            fontSize: "12px",
+            overflowX: "auto",
+            textAlign: "left",
+            mb: "24px",
+          })}
+        >
+          <pre>
+            {`interface DataTabsProps extends HTMLAttributes<HTMLDivElement> {
+  variant?: TabsVariant["variant"];
+  size?: TabsVariant["size"];
+  data: TabData[];
+  defaultValue?: string; // 커스터마이제이션 prop
+  onValueChange?: (value: string) => void; // 커스터마이제이션 prop
+}`}
+          </pre>
+        </div>
+      </section>
+
+      {/* Step 7: 추가 Props 처리 */}
+      <section className={css({ mb: "48px" })}>
+        <h2
+          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
+        >
+          Step 7: 추가 Props 처리
+        </h2>
+        <p className={css({ mb: "16px", color: "#666" })}>
+          <code>...props</code>를 사용하여 모든 HTML 속성을 전달할 수 있도록
+          합니다.
+        </p>
+        <div
+          className={css({
+            p: "16px",
+            bg: "gray.900",
+            color: "green.400",
+            rounded: "8px",
+            fontSize: "12px",
+            overflowX: "auto",
+            textAlign: "left",
+            mb: "24px",
+          })}
+        >
+          <pre>
+            {`export const DataTabs = ({
+  data,
+  variant,
+  size,
+  className,
+  ...props // 모든 HTML 속성 전달
+}: DataTabsProps) => {
+  // ...
+  return (
+    <div className={cx(styles.root, className)} {...restProps}>
+      {/* ... */}
+    </div>
+  );
+};`}
+          </pre>
+        </div>
+      </section>
+
+      {/* Step 8: Recipe Variants 지원 */}
+      <section className={css({ mb: "48px" })}>
+        <h2
+          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
+        >
+          Step 8: Recipe Variants 지원
+        </h2>
+        <p className={css({ mb: "16px", color: "#666" })}>
+          <code>RecipeVariant</code>를 import하여 타입을 자동으로 추론하고,
+          variants를 props로 받을 수 있도록 합니다.
+        </p>
+        <div
+          className={css({
+            p: "16px",
+            bg: "gray.900",
+            color: "green.400",
+            rounded: "8px",
+            fontSize: "12px",
+            overflowX: "auto",
+            textAlign: "left",
+            mb: "24px",
+          })}
+        >
+          <pre>
+            {`import type { RecipeVariant } from "../../../styled-system/types/recipe";
+
+type TabsVariant = RecipeVariant<typeof tabsSlotRecipe>;
+
+interface DataTabsProps {
+  variant?: TabsVariant["variant"]; // 자동 타입 추론
+  size?: TabsVariant["size"]; // 자동 타입 추론
+}`}
+          </pre>
+        </div>
+
+        {/* Variants 사용 예제 */}
+        <div
+          className={css({
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: "24px",
+          })}
+        >
+          <div>
+            <h3
+              className={css({
+                fontSize: "16px",
+                fontWeight: "600",
+                mb: "12px",
+              })}
+            >
+              Default Variant
+            </h3>
+            <div
+              className={css({
+                p: "16px",
+                bg: "gray.50",
+                rounded: "8px",
+                border: "1px solid",
+                borderColor: "gray.200",
+              })}
+            >
+              <DataTabs data={tabsData} variant="default" size="md" />
+            </div>
+          </div>
+          <div>
+            <h3
+              className={css({
+                fontSize: "16px",
+                fontWeight: "600",
+                mb: "12px",
+              })}
+            >
+              Enclosed Variant
+            </h3>
+            <div
+              className={css({
+                p: "16px",
+                bg: "gray.50",
+                rounded: "8px",
+                border: "1px solid",
+                borderColor: "gray.200",
+              })}
+            >
+              <DataTabs data={tabsData} variant="enclosed" size="md" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Step 9: Recipe Props 분리 */}
+      <section className={css({ mb: "48px" })}>
+        <h2
+          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
+        >
+          Step 9: Recipe Props 분리 (splitVariantProps)
+        </h2>
+        <p className={css({ mb: "16px", color: "#666" })}>
+          <code>splitVariantProps</code>를 사용하여 recipe props와 다른 props를
+          분리합니다. 이렇게 하면 recipe variants와 일반 HTML 속성을 명확히
+          구분할 수 있습니다.
+        </p>
         <div
           className={css({
             p: "20px",
@@ -293,7 +693,7 @@ export const ConvertingToJSXcomp = () => {
           <h3
             className={css({ fontSize: "18px", fontWeight: "600", mb: "12px" })}
           >
-            ✅ 장점
+            ✅ splitVariantProps의 장점
           </h3>
           <ul
             className={css({
@@ -303,36 +703,12 @@ export const ConvertingToJSXcomp = () => {
               textAlign: "left",
             })}
           >
-            <li>Props drilling 방지</li>
-            <li>일관된 variants 보장</li>
-            <li>사용자가 실수로 다른 variant를 전달하는 것을 방지</li>
-            <li>코드가 더 깔끔해짐</li>
-          </ul>
-
-          <h3
-            className={css({
-              fontSize: "18px",
-              fontWeight: "600",
-              mb: "12px",
-              mt: "16px",
-            })}
-          >
-            ⚠️ 주의사항
-          </h3>
-          <ul
-            className={css({
-              listStyle: "disc",
-              ml: "20px",
-              spaceY: "4px",
-              textAlign: "left",
-            })}
-          >
-            <li>Context Provider 내부에서만 사용 가능</li>
-            <li>잘못된 사용 시 에러 처리 필요</li>
-            <li>과도한 Context 사용은 성능 저하 가능</li>
+            <li>Recipe variants와 일반 props를 자동으로 분리</li>
+            <li>타입 안전성 보장</li>
+            <li>코드가 더 명확해짐</li>
+            <li>실수로 잘못된 props를 전달하는 것을 방지</li>
           </ul>
         </div>
-
         <div
           className={css({
             p: "16px",
@@ -346,442 +722,30 @@ export const ConvertingToJSXcomp = () => {
           })}
         >
           <pre>
-            {`// Context 정의
-const CardContext = createContext<CardContextValue | undefined>(undefined);
+            {`export const DataTabs = ({
+  data,
+  variant,
+  size,
+  className,
+  ...props
+}: DataTabsProps) => {
+  // splitVariantProps로 recipe props와 일반 props 분리
+  const [recipeProps, restProps] = tabsSlotRecipe.splitVariantProps({
+    variant,
+    size,
+    ...props, // 모든 추가 props 포함
+  });
 
-// Root 컴포넌트에서 Provider로 감싸기
-<CardContext.Provider value={{ variant, size }}>
-  <div className={styles.root}>...</div>
-</CardContext.Provider>
+  // recipeProps는 { variant, size }만 포함
+  const styles = tabsSlotRecipe(recipeProps);
 
-// Slot 컴포넌트에서 Context 사용
-const { variant, size } = useCardContext();
-const styles = cardSlotRecipe({ variant, size });`}
-          </pre>
-        </div>
-
-        {/* 실제 사용 예제 */}
-        <div
-          className={css({
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "24px",
-          })}
-        >
-          <Card variant="elevated" size="md" interactive>
-            <CardHeader>
-              <h3 className={css({ fontSize: "18px", fontWeight: "600" })}>
-                Context 사용 예제
-              </h3>
-            </CardHeader>
-            <CardBody>
-              <p className={css({ color: "gray.600" })}>
-                CardHeader와 CardBody가 자동으로 동일한 variant와 size를
-                공유합니다.
-              </p>
-            </CardBody>
-            <CardFooter>
-              <button
-                className={css({
-                  px: "12px",
-                  py: "6px",
-                  bg: "blue.500",
-                  color: "white",
-                  rounded: "6px",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                })}
-              >
-                Action
-              </button>
-            </CardFooter>
-          </Card>
-
-          <Card variant="outlined" size="sm">
-            <CardHeader>
-              <h3 className={css({ fontSize: "16px", fontWeight: "600" })}>
-                Small Outlined
-              </h3>
-            </CardHeader>
-            <CardBody>
-              <p className={css({ color: "gray.600", fontSize: "14px" })}>
-                모든 slot이 자동으로 sm size를 공유합니다.
-              </p>
-            </CardBody>
-            <CardFooter>
-              <button
-                className={css({
-                  px: "10px",
-                  py: "4px",
-                  bg: "gray.200",
-                  color: "gray.900",
-                  rounded: "4px",
-                  fontSize: "12px",
-                  cursor: "pointer",
-                })}
-              >
-                Cancel
-              </button>
-            </CardFooter>
-          </Card>
-        </div>
-      </section>
-
-      {/* 고려사항 2: 성능 최적화 */}
-      <section className={css({ mb: "48px" })}>
-        <h2
-          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
-        >
-          2. 성능 최적화 (useMemo)
-        </h2>
-        <p className={css({ mb: "16px", color: "#666" })}>
-          Slot Recipe의 스타일 계산은 variants가 변경될 때만 재계산되도록{" "}
-          <code>useMemo</code>를 사용합니다.
-        </p>
-
-        <div
-          className={css({
-            p: "20px",
-            bg: "green.50",
-            rounded: "12px",
-            border: "1px solid",
-            borderColor: "green.200",
-            mb: "24px",
-          })}
-        >
-          <h3
-            className={css({ fontSize: "18px", fontWeight: "600", mb: "12px" })}
-          >
-            ✅ 최적화 전략
-          </h3>
-          <ul
-            className={css({
-              listStyle: "disc",
-              ml: "20px",
-              spaceY: "4px",
-              textAlign: "left",
-            })}
-          >
-            <li>
-              <code>useMemo</code>로 스타일 계산 결과를 메모이제이션
-            </li>
-            <li>Context value도 메모이제이션하여 불필요한 리렌더링 방지</li>
-            <li>variants가 변경될 때만 재계산</li>
-            <li>대량의 컴포넌트 렌더링 시 성능 향상</li>
-          </ul>
-        </div>
-
-        <div
-          className={css({
-            p: "16px",
-            bg: "gray.900",
-            color: "green.400",
-            rounded: "8px",
-            fontSize: "12px",
-            overflowX: "auto",
-            textAlign: "left",
-          })}
-        >
-          <pre>
-            {`// ✅ 최적화된 코드
-const styles = useMemo(
-  () => cardSlotRecipe({ variant, size, interactive }),
-  [variant, size, interactive] // 의존성 배열
-);
-
-const contextValue = useMemo(
-  () => ({ variant, size, interactive }),
-  [variant, size, interactive]
-);
-
-// ❌ 최적화되지 않은 코드 (매 렌더링마다 재계산)
-const styles = cardSlotRecipe({ variant, size, interactive });`}
-          </pre>
-        </div>
-      </section>
-
-      {/* 고려사항 3: 타입 안전성 */}
-      <section className={css({ mb: "48px" })}>
-        <h2
-          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
-        >
-          3. 타입 안전성
-        </h2>
-        <p className={css({ mb: "16px", color: "#666" })}>
-          TypeScript를 사용하여 variants의 타입을 명확히 정의하고, 잘못된 사용을
-          방지합니다.
-        </p>
-
-        <div
-          className={css({
-            p: "20px",
-            bg: "purple.50",
-            rounded: "12px",
-            border: "1px solid",
-            borderColor: "purple.200",
-            mb: "24px",
-          })}
-        >
-          <h3
-            className={css({ fontSize: "18px", fontWeight: "600", mb: "12px" })}
-          >
-            ✅ 타입 정의 예제
-          </h3>
-          <div
-            className={css({
-              p: "16px",
-              bg: "gray.900",
-              color: "green.400",
-              rounded: "8px",
-              fontSize: "12px",
-              overflowX: "auto",
-              textAlign: "left",
-            })}
-          >
-            <pre>
-              {`// 명시적인 타입 정의
-interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "elevated" | "outlined";
-  size?: "sm" | "md" | "lg";
-  interactive?: boolean;
-}
-
-// Context 타입 정의
-type CardContextValue = {
-  variant?: "default" | "elevated" | "outlined";
-  size?: "sm" | "md" | "lg";
-  interactive?: boolean;
-};
-
-// 타입 안전한 Context 사용
-const CardContext = createContext<CardContextValue | undefined>(undefined);`}
-            </pre>
-          </div>
-        </div>
-      </section>
-
-      {/* 고려사항 4: 컴포지션 패턴 */}
-      <section className={css({ mb: "48px" })}>
-        <h2
-          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
-        >
-          4. 컴포지션 패턴 (네임스페이스)
-        </h2>
-        <p className={css({ mb: "16px", color: "#666" })}>
-          <code>Card.Header</code>, <code>Card.Body</code> 같은 네임스페이스
-          패턴을 사용하면 더 직관적인 API를 제공할 수 있습니다.
-        </p>
-
-        <div
-          className={css({
-            p: "20px",
-            bg: "yellow.50",
-            rounded: "12px",
-            border: "1px solid",
-            borderColor: "yellow.200",
-            mb: "24px",
-          })}
-        >
-          <h3
-            className={css({ fontSize: "18px", fontWeight: "600", mb: "12px" })}
-          >
-            ✅ 사용 예제
-          </h3>
-          <div
-            className={css({
-              p: "16px",
-              bg: "gray.900",
-              color: "green.400",
-              rounded: "8px",
-              fontSize: "12px",
-              overflowX: "auto",
-              textAlign: "left",
-            })}
-          >
-            <pre>
-              {`// 컴포지션 패턴 적용
-export const CardComposition = Card as typeof Card & {
-  Header: typeof CardHeader;
-  Body: typeof CardBody;
-  Footer: typeof CardFooter;
-};
-
-CardComposition.Header = CardHeader;
-CardComposition.Body = CardBody;
-CardComposition.Footer = CardFooter;
-
-// 사용
-<CardComposition variant="elevated">
-  <CardComposition.Header>...</CardComposition.Header>
-  <CardComposition.Body>...</CardComposition.Body>
-  <CardComposition.Footer>...</CardComposition.Footer>
-</CardComposition>`}
-            </pre>
-          </div>
-        </div>
-
-        {/* 실제 사용 예제 */}
-        <CardComposition variant="elevated" size="md">
-          <CardComposition.Header>
-            <h3 className={css({ fontSize: "18px", fontWeight: "600" })}>
-              컴포지션 패턴 예제
-            </h3>
-          </CardComposition.Header>
-          <CardComposition.Body>
-            <p className={css({ color: "gray.600" })}>
-              Card.Header, Card.Body 같은 네임스페이스로 사용할 수 있습니다.
-            </p>
-          </CardComposition.Body>
-          <CardComposition.Footer>
-            <button
-              className={css({
-                px: "12px",
-                py: "6px",
-                bg: "blue.500",
-                color: "white",
-                rounded: "6px",
-                fontSize: "14px",
-                cursor: "pointer",
-              })}
-            >
-              Action
-            </button>
-          </CardComposition.Footer>
-        </CardComposition>
-      </section>
-
-      {/* 고려사항 5: 에러 처리 */}
-      <section className={css({ mb: "48px" })}>
-        <h2
-          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
-        >
-          5. 에러 처리
-        </h2>
-        <p className={css({ mb: "16px", color: "#666" })}>
-          Context를 사용할 때는 slot 컴포넌트가 Provider 외부에서 사용되는
-          경우를 대비한 에러 처리가 필요합니다.
-        </p>
-
-        <div
-          className={css({
-            p: "20px",
-            bg: "red.50",
-            rounded: "12px",
-            border: "1px solid",
-            borderColor: "red.200",
-            mb: "24px",
-          })}
-        >
-          <h3
-            className={css({ fontSize: "18px", fontWeight: "600", mb: "12px" })}
-          >
-            ✅ 에러 처리 예제
-          </h3>
-          <div
-            className={css({
-              p: "16px",
-              bg: "gray.900",
-              color: "green.400",
-              rounded: "8px",
-              fontSize: "12px",
-              overflowX: "auto",
-              textAlign: "left",
-            })}
-          >
-            <pre>
-              {`const useCardContext = () => {
-  const context = useContext(CardContext);
-  if (!context) {
-    throw new Error("Card slot components must be used within Card");
-  }
-  return context;
-};
-
-// 사용 시 명확한 에러 메시지 제공
-// 개발자가 실수로 CardHeader를 Card 외부에서 사용하면
-// 즉시 에러를 확인할 수 있음`}
-            </pre>
-          </div>
-        </div>
-      </section>
-
-      {/* 고려사항 6: 확장성 */}
-      <section className={css({ mb: "48px" })}>
-        <h2
-          className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
-        >
-          6. 확장성과 재사용성
-        </h2>
-        <p className={css({ mb: "16px", color: "#666" })}>
-          컴포넌트를 확장 가능하게 만들고, 추가 스타일을 쉽게 적용할 수 있도록
-          설계합니다.
-        </p>
-
-        <div
-          className={css({
-            p: "20px",
-            bg: "indigo.50",
-            rounded: "12px",
-            border: "1px solid",
-            borderColor: "indigo.200",
-            mb: "24px",
-          })}
-        >
-          <h3
-            className={css({ fontSize: "18px", fontWeight: "600", mb: "12px" })}
-          >
-            ✅ 확장성 고려사항
-          </h3>
-          <ul
-            className={css({
-              listStyle: "disc",
-              ml: "20px",
-              spaceY: "4px",
-              textAlign: "left",
-            })}
-          >
-            <li>
-              <code>className</code> prop을 받아서 추가 스타일 적용 가능
-            </li>
-            <li>
-              <code>...props</code>로 모든 HTML 속성 전달 가능
-            </li>
-            <li>기본 스타일을 덮어쓸 수 있는 유연성 제공</li>
-            <li>컴포넌트 조합을 통한 확장</li>
-          </ul>
-        </div>
-
-        <div
-          className={css({
-            p: "16px",
-            bg: "gray.900",
-            color: "green.400",
-            rounded: "8px",
-            fontSize: "12px",
-            overflowX: "auto",
-            textAlign: "left",
-          })}
-        >
-          <pre>
-            {`// ✅ 확장 가능한 컴포넌트
-export const CardHeader = ({
-  className, // 추가 스타일을 위한 className
-  children,
-  ...props // 모든 HTML 속성 전달
-}: HTMLAttributes<HTMLDivElement>) => {
-  const { variant, size } = useCardContext();
-  const styles = cardSlotRecipe({ variant, size });
+  // restProps는 recipe props를 제외한 나머지 props
   return (
-    <div className={cx(styles.header, className)} {...props}>
-      {children}
+    <div className={cx(styles.root, className)} {...restProps}>
+      {/* ... */}
     </div>
   );
-};
-
-// 사용 예제: 추가 스타일 적용
-<CardHeader className={css({ bg: "blue.50" })}>
-  Custom Header
-</CardHeader>`}
+};`}
           </pre>
         </div>
       </section>
@@ -791,7 +755,7 @@ export const CardHeader = ({
         <h2
           className={css({ fontSize: "24px", fontWeight: "600", mb: "16px" })}
         >
-          7. 실무 활용 팁
+          실무 활용 팁
         </h2>
         <div
           className={css({
@@ -811,32 +775,24 @@ export const CardHeader = ({
             })}
           >
             <li>
-              <strong>Context vs Props:</strong> 간단한 컴포넌트는 props 전달,
-              복잡한 컴포넌트는 Context 사용
+              <strong>RecipeVariant 사용:</strong> 타입을 자동으로 추론하여 타입
+              안전성을 보장합니다.
             </li>
             <li>
-              <strong>성능 최적화:</strong> <code>useMemo</code>로 스타일 계산
-              메모이제이션
+              <strong>splitVariantProps:</strong> Recipe props와 일반 props를
+              분리하여 코드를 더 명확하게 만듭니다.
             </li>
             <li>
-              <strong>타입 안전성:</strong> TypeScript로 variants 타입 명확히
-              정의
+              <strong>동적 렌더링:</strong> 데이터 배열을 사용하여 컴포넌트를
+              재사용 가능하게 만듭니다.
             </li>
             <li>
-              <strong>에러 처리:</strong> Context 사용 시 Provider 외부 사용
-              방지
+              <strong>커스터마이제이션:</strong> 추가 props를 노출하여
+              컴포넌트를 확장 가능하게 만듭니다.
             </li>
             <li>
-              <strong>확장성:</strong> <code>className</code>과{" "}
-              <code>...props</code> 제공
-            </li>
-            <li>
-              <strong>컴포지션:</strong> 네임스페이스 패턴으로 더 직관적인 API
-              제공
-            </li>
-            <li>
-              <strong>일관성:</strong> 모든 slot 컴포넌트가 동일한 variants를
-              공유하도록 보장
+              <strong>타입 안전성:</strong> TypeScript를 사용하여 모든 props의
+              타입을 명확히 정의합니다.
             </li>
           </ul>
         </div>

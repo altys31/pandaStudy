@@ -19,6 +19,8 @@ import { Excercise as Recipes_Excercise } from "./pages/Recipies/Excercise";
 import { SlotRecipes } from "./pages/SlotRecipes/SlotRecipes";
 import { ConvertingToJSXcomp } from "./pages/SlotRecipes/ConvertingToJSXcomp";
 import { SlotRecipesEx } from "./pages/SlotRecipes/Excercise";
+import { ConfigRecipes } from "./pages/ConfigRecipes/ConfigRecipes";
+import { ConfigRecipeExcercise } from "./pages/ConfigRecipes/ConfigRecipeExcercise";
 
 type ExampleComponent = {
   id: string;
@@ -119,6 +121,18 @@ const examples: ExampleComponent[] = [
     name: "Slot Recipes Excercise",
     category: "Slot Recipes",
     component: SlotRecipesEx,
+  },
+  {
+    id: "config-recipes",
+    name: "Config Recipes",
+    category: "Config Recipes",
+    component: ConfigRecipes,
+  },
+  {
+    id: "config-recipes-excercise",
+    name: "Excercise",
+    category: "Config Recipes",
+    component: ConfigRecipeExcercise,
   },
 ];
 

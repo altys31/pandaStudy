@@ -1,4 +1,7 @@
-import { defineConfig } from "@pandacss/dev";
+import { defineConfig} from "@pandacss/dev";
+import { badgeRecipe } from "./src/pages/ConfigRecipes/Badge.recipe";
+import { alertRecipe } from "./src/pages/ConfigRecipes/Alert.recipe";
+import { cardRecipe } from "./src/pages/ConfigRecipes/Card.recipe";
 
 export default defineConfig({
   // Whether to use css reset
@@ -14,12 +17,18 @@ export default defineConfig({
   // Useful for theme customization
   globalCss: {
     body: {
-      bg : {base: "#F8FAFC", dark: '#111827'},
-      color: {base: "#111827", dark: "white"},
+      bg : {base: "#F8FAFC", _dark: '#111827'},
+      color: {base: "#111827", _dark: "#F8FAFC"},
     },
   },
   theme: {
-    extend: {},
+    extend: {
+      recipes: {
+        badge: badgeRecipe,
+        alert: alertRecipe,
+        card: cardRecipe,
+      },
+    },
   },
   conditions:{
     extend: {
