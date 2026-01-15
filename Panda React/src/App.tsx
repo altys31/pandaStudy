@@ -21,6 +21,10 @@ import { ConvertingToJSXcomp } from "./pages/SlotRecipes/ConvertingToJSXcomp";
 import { SlotRecipesEx } from "./pages/SlotRecipes/Excercise";
 import { ConfigRecipes } from "./pages/ConfigRecipes/ConfigRecipes";
 import { ConfigRecipeExcercise } from "./pages/ConfigRecipes/ConfigRecipeExcercise";
+import { DesignTokens } from "./pages/Design Tokens/DesignTokens";
+import { DesignTokensExcercise } from "./pages/Design Tokens/Excercise";
+import { EmotionStyledMigration } from "./pages/Migration/EmotionStyledMigration";
+import { ThemeExcercises } from "./pages/Theming/Excercises";
 
 type ExampleComponent = {
   id: string;
@@ -134,17 +138,40 @@ const examples: ExampleComponent[] = [
     category: "Config Recipes",
     component: ConfigRecipeExcercise,
   },
+  {
+    id: "design-tokens",
+    name: "Design Tokens",
+    category: "Design Tokens",
+    component: DesignTokens,
+  },
+  {
+    id: "design-tokens-excercise",
+    name: "Excercise",
+    category: "Design Tokens",
+    component: DesignTokensExcercise,
+  },
+  {
+    id: "migration-guide",
+    name: "Migration Guide",
+    category: "Migration",
+    component: EmotionStyledMigration,
+  },
+  {
+    id: "theme-excercises",
+    name: "Excercises",
+    category: "Theming",
+    component: ThemeExcercises,
+  },
 ];
 
 function App() {
   const [selectedExample, setSelectedExample] = useState<string>("patterns");
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set()
   );
   const currentExample = examples.find((ex) => ex.id === selectedExample);
   const CurrentComponent = currentExample?.component || PatternsDemo;
-  const isExercise = selectedExample === "excercise";
 
   const categories = Array.from(new Set(examples.map((ex) => ex.category)));
 
@@ -160,43 +187,6 @@ function App() {
     });
   };
 
-  // Exercise 컴포넌트는 전체 화면으로 표시
-  if (isExercise && isFullscreen) {
-    return (
-      <div className={css({ minH: "100vh", bg: "white" })}>
-        <div
-          className={css({
-            position: "fixed",
-            top: "16px",
-            right: "16px",
-            zIndex: "1000",
-          })}
-        >
-          <button
-            onClick={() => {
-              setIsFullscreen(false);
-              setSelectedExample("patterns");
-            }}
-            className={css({
-              px: "16px",
-              py: "8px",
-              bg: "gray.800",
-              color: "white",
-              rounded: "6px",
-              fontSize: "14px",
-              fontWeight: "500",
-              cursor: "pointer",
-              _hover: { bg: "gray.900" },
-            })}
-          >
-            ← 뒤로가기
-          </button>
-        </div>
-        <CurrentComponent />
-      </div>
-    );
-  }
-
   return (
     <div className={css({ minH: "100vh", bg: "gray.50" })}>
       {/* 네비게이션 바 */}
@@ -209,7 +199,7 @@ function App() {
           top: "0",
           zIndex: "100",
           boxShadow: "sm",
-          display: isExercise ? "none" : "block",
+          display: "block",
         })}
       >
         <div
@@ -226,15 +216,60 @@ function App() {
               gap: "32px",
             })}
           >
-            <h1
-              className={css({
-                fontSize: "24px",
-                fontWeight: "bold",
-                color: "gray.900",
-              })}
-            >
-              PandaCSS Examples
-            </h1>
+            <div className={hstack({ gap: "16px", alignItems: "center" })}>
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={css({
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  w: "36px",
+                  h: "36px",
+                  rounded: "6px",
+                  color: "gray.700",
+                  transition: "all 0.2s",
+                  _hover: {
+                    bg: "gray.100",
+                    color: "gray.900",
+                  },
+                })}
+                aria-label="Toggle Sidebar"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  {isSidebarOpen ? (
+                    <>
+                      <line x1="18" y1="6" x2="6" y2="6" />
+                      <line x1="18" y1="12" x2="6" y2="12" />
+                      <line x1="18" y1="18" x2="6" y2="18" />
+                    </>
+                  ) : (
+                    <>
+                      <line x1="3" y1="12" x2="21" y2="12" />
+                      <line x1="3" y1="6" x2="21" y2="6" />
+                      <line x1="3" y1="18" x2="21" y2="18" />
+                    </>
+                  )}
+                </svg>
+              </button>
+              <h1
+                className={css({
+                  fontSize: "24px",
+                  fontWeight: "bold",
+                  color: "gray.900",
+                })}
+              >
+                PandaCSS Examples
+              </h1>
+            </div>
             <div
               className={hstack({
                 gap: "8px",
@@ -293,19 +328,22 @@ function App() {
         {/* 사이드바 */}
         <aside
           className={css({
-            w: "250px",
+            w: isSidebarOpen ? "250px" : "0",
             flexShrink: "0",
             bg: "white",
             rounded: "12px",
-            p: "20px",
+            p: isSidebarOpen ? "20px" : "0",
             maxH: "85vh",
             position: "sticky",
             top: "100px",
-            border: "1px solid",
+            border: isSidebarOpen ? "1px solid" : "none",
             borderColor: "gray.200",
             overflowY: "auto",
+            overflowX: "hidden",
             height: "fit-content",
-            display: isExercise ? "none" : "block",
+            display: isSidebarOpen ? "block" : "none",
+            transition: "all 0.3s ease-in-out",
+            opacity: isSidebarOpen ? 1 : 0,
           })}
         >
           <h2
@@ -370,11 +408,6 @@ function App() {
                           key={example.id}
                           onClick={() => {
                             setSelectedExample(example.id);
-                            if (example.id === "excercise") {
-                              setIsFullscreen(true);
-                            } else {
-                              setIsFullscreen(false);
-                            }
                           }}
                           className={css({
                             w: "100%",
@@ -417,96 +450,48 @@ function App() {
         {/* 메인 콘텐츠 */}
         <main
           className={css({
-            flex: isExercise ? "1" : "1",
+            flex: "1",
             minW: "0",
             bg: "white",
-            rounded: isExercise ? "0" : "12px",
-            border: isExercise ? "none" : "1px solid",
+            rounded: "12px",
+            border: "1px solid",
             borderColor: "gray.200",
             overflow: "hidden",
-            w: isExercise ? "100%" : "auto",
+            w: "auto",
           })}
         >
-          {!isExercise && (
-            <div
-              className={css({
-                p: "24px",
-                borderBottom: "1px solid",
-                borderColor: "gray.200",
-                bg: "gray.50",
-              })}
-            >
+          <div
+            className={css({
+              p: "24px",
+              borderBottom: "1px solid",
+              borderColor: "gray.200",
+              bg: "gray.50",
+            })}
+          >
+            <div>
               <div>
-                <div>
-                  <h2
-                    className={css({
-                      fontSize: "20px",
-                      fontWeight: "600",
-                      color: "gray.900",
-                      mb: "4px",
-                    })}
-                  >
-                    {currentExample?.name}
-                  </h2>
-                  <p
-                    className={css({
-                      fontSize: "14px",
-                      color: "gray.600",
-                    })}
-                  >
-                    {currentExample?.category}
-                  </p>
-                </div>
-                {isExercise && (
-                  <button
-                    onClick={() => setIsFullscreen(true)}
-                    className={css({
-                      px: "16px",
-                      py: "8px",
-                      bg: "blue.500",
-                      color: "white",
-                      rounded: "6px",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                      cursor: "pointer",
-                      _hover: { bg: "blue.600" },
-                    })}
-                  >
-                    전체 화면
-                  </button>
-                )}
+                <h2
+                  className={css({
+                    fontSize: "20px",
+                    fontWeight: "600",
+                    color: "gray.900",
+                    mb: "4px",
+                  })}
+                >
+                  {currentExample?.name}
+                </h2>
+                <p
+                  className={css({
+                    fontSize: "14px",
+                    color: "gray.600",
+                  })}
+                >
+                  {currentExample?.category}
+                </p>
               </div>
             </div>
-          )}
-          {isExercise && (
-            <div
-              className={css({
-                position: "absolute",
-                top: "16px",
-                right: "16px",
-                zIndex: "100",
-              })}
-            >
-              <button
-                onClick={() => setIsFullscreen(true)}
-                className={css({
-                  px: "16px",
-                  py: "8px",
-                  bg: "blue.500",
-                  color: "white",
-                  rounded: "6px",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  _hover: { bg: "blue.600" },
-                  boxShadow: "md",
-                })}
-              >
-                전체 화면 모드
-              </button>
-            </div>
-          )}
-          <div className={css({ p: isExercise ? "0" : "0" })}>
+          </div>
+          <div className={css({ p: "0" })}>
             <CurrentComponent />
           </div>
         </main>

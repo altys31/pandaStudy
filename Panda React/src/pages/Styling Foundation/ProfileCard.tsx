@@ -1,29 +1,29 @@
 import { css } from "../../../styled-system/css";
+import { flex } from "../../../styled-system/patterns";
 
 export const ProfileCard = () => {
   const ProfileCardStyles = css({
-    width: "300px",
-    height: "160px",
+    width: "370px",
+    height: "200px",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-around",
-    border: "1px solid #ccc",
     borderRadius: "10px",
-    padding: "12px",
-    gap: "8px",
+    padding: "24px",
+    gap: "16px",
+    bg: { base: "bg.card.default", _dark: "bg.card.dark" },
   });
 
   const ProfileCardTop = css({
     display: "flex",
+    justifyContent: "space-between",
   });
 
   const ProfilePhoto = css({
     alignSelf: "center",
-    width: "32px",
-    height: "32px",
+    width: "43px",
+    height: "43px",
     borderRadius: "50%",
-    ml: "12px",
-    mr: "16px",
     bg: "gray",
   });
 
@@ -31,6 +31,7 @@ export const ProfileCard = () => {
     display: "flex",
     flexDirection: "column",
     textAlign: "left",
+    color: { base: "fg.default.default", _dark: "fg.default.dark" },
   });
 
   const ProfileNameText = css({
@@ -47,26 +48,22 @@ export const ProfileCard = () => {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    mt: "12px",
-    pl: "36px",
-    fontSize: "14px",
-    fontWeight: "400",
+    fontSize: "16px",
+    fontWeight: "600",
     gap: "6px",
   });
 
   const DescriptionContainer = css({
-    fontSize: "14px",
+    fontSize: "16px",
     fontWeight: "400",
     gap: "6px",
     textAlign: "left",
-    ml: "12px",
-    color: "#666666",
+    color: { base: "fg.subtle.default", _dark: "fg.subtle.dark" },
   });
 
   const BottomContainer = css({
     display: "flex",
     justifyContent: "space-between",
-    mt: "12px",
     gap: "48px",
   });
 
@@ -74,18 +71,16 @@ export const ProfileCard = () => {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    fontSize: "12px",
+    fontSize: "14px",
     fontWeight: "600",
-    gap: "12px",
+    gap: "24px",
     textAlign: "left",
-    ml: "12px",
   });
 
   const ButtonContainer = css({
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
-    ml: "12px",
     gap: "12px",
     fontSize: "12px",
   });
@@ -94,19 +89,22 @@ export const ProfileCard = () => {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    width: "24px",
-    height: "24px",
+    width: "32px",
+    height: "32px",
     borderRadius: "4px",
-    border: "1px solid rgb(225, 225, 225)",
+    border: "1px solid",
+    borderColor: { base: "border.default", _dark: "border.dark" },
   });
 
   return (
     <div className={ProfileCardStyles}>
       <div className={ProfileCardTop}>
-        <div className={ProfilePhoto} />
-        <div className={ProfileName}>
-          <div className={ProfileNameText}>John Doe</div>
-          <div className={ProfileJob}>Frontend Developer</div>
+        <div className={flex({ flexDirection: "row", gap: "16px" })}>
+          <div className={ProfilePhoto} />
+          <div className={ProfileName}>
+            <div className={ProfileNameText}>John Doe</div>
+            <div className={ProfileJob}>Frontend Developer</div>
+          </div>
         </div>
         <div className={ScoreContainer}>
           <span>4.2</span>
