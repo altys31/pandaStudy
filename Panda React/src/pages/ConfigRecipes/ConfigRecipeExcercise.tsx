@@ -1,72 +1,12 @@
-import { css, cva, type RecipeVariant } from "../../../styled-system/css";
+import { css, type RecipeVariant } from "../../../styled-system/css";
 import { flex } from "../../../styled-system/patterns";
+import { card } from "../../../styled-system/recipes";
 
-const CardRecipes = cva({
-  base: {
-    w: "311px",
-    h: "210px",
-    p: "25px 20px 25px 20px",
-    bg: "white",
-    rounded: "12px",
-    transition: "all 0.2s",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-around",
-    alignItems: "start",
-  },
-  variants: {
-    variant: {
-      default: {},
-      elevated: {
-        boxShadow: "md",
-      },
-      outlined: {
-        border: "1px solid #F2F2F2",
-      },
-      filled: {
-        bg: "#F1F1F1",
-      },
-    },
-  },
-  defaultVariants: {
-    variant: "default",
-  },
-  compoundVariants: [
-    {
-      variant: "elevated",
-      css: {
-        boxShadow: "sm",
-        transform: "translateY(-2px)",
-      },
-    },
-    {
-      variant: "elevated",
-      css: {
-        boxShadow: "md",
-        _hover: {
-          boxShadow: "lg",
-          transform: "translateY(-2px)",
-        },
-      },
-    },
-    {
-      variant: "elevated",
-      css: {
-        boxShadow: "lg",
-        _hover: {
-          boxShadow: "xl",
-          transform: "translateY(-4px)",
-        },
-      },
-    },
-  ],
-});
-
-type CardVariants = RecipeVariant<typeof CardRecipes>;
+type CardVariants = RecipeVariant<typeof card>;
 
 const CardRecipeComponent = ({ variant }: CardVariants) => {
   return (
-    <div className={CardRecipes({ variant })}>
+    <div className={card({ variant })}>
       <div>
         <div className={css({ fontSize: "16px", fontWeight: "bold" })}>
           United Kingdom
@@ -104,16 +44,16 @@ const CardRecipeComponent = ({ variant }: CardVariants) => {
               textWrap: "nowrap",
             })}
           >
-            <div className={css({ fontSize: "14px" })}>🌧️</div>
-            <div className={css({ fontSize: "14px", fontWeight: "400" })}>
+            <div className={css({ fontSize: "12px" })}>🌧️</div>
+            <div className={css({ fontSize: "12px", fontWeight: "400" })}>
               4% precipitation
             </div>
           </div>
           <div className={flex({ alignItems: "center", gap: "5px" })}>
-            <div className={css({ fontSize: "14px" })}>💨</div>
+            <div className={css({ fontSize: "12px" })}>💨</div>
             <div
               className={css({
-                fontSize: "14px",
+                fontSize: "12px",
                 fontWeight: "400",
                 textWrap: "nowrap",
               })}

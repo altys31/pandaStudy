@@ -3,15 +3,15 @@ import { defineRecipe } from "@pandacss/dev";
 export const cardRecipe = defineRecipe({
   className: "card",
   base: {
-    w: "311px",
+    w: "310px",
     h: "210px",
     p: "25px 20px 25px 20px",
-    bg: "white",
     rounded: "12px",
     transition: "all 0.2s",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-around",
+    border: "1px solid #DBDBDB",
     alignItems: "start",
   },
   variants: {
@@ -24,7 +24,7 @@ export const cardRecipe = defineRecipe({
         border: "1px solid #F2F2F2",
       },
       filled: {
-        bg: "#F1F1F1",
+        background: "#F1F1F1",
       },
     },
   },
