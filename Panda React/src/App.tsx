@@ -242,7 +242,7 @@ function App() {
               })}
             >
               <a
-                href="https://github.com/altys31/"
+                href="https://github.com/altys31/pandaStudy"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={css({
@@ -259,7 +259,7 @@ function App() {
                     color: "gray.900",
                   },
                 })}
-                aria-label="GitHub Profile"
+                aria-label="pandaStudy github Code"
               >
                 <svg
                   width="32"
