@@ -27,7 +27,7 @@ export const LayerStyles = () => {
       <div
         className={stack({
           px: "6",
-          py: "4",
+          py: "10",
           borderRadius: "2xl",
           gap: "24px",
           width: "420px",
@@ -38,25 +38,73 @@ export const LayerStyles = () => {
           alignItems: "center",
         })}
       >
-        <div>Select from available days</div>
+        <div
+          className={css({
+            px: "8",
+            py: "6",
+            borderRadius: "2xl",
+            textStyle: "body.large",
+            flex: "1",
+            textAlign: "center",
+            fontWeight: "medium",
+          })}
+        >
+          Select from available days
+        </div>
         <div className={grid({ gridTemplateColumns: "repeat(2, 2fr)" })}>
           <button
             className={css({
               px: "8",
-              py: "6",
+              py: "4",
               fontWeight: "semibold",
-              color: "gray.400",
               flex: "1",
               borderRadius: "2xl",
               textStyle: "body.large",
-              layerStyle: "control.disabled",
+              layerStyle: "surface.outline",
             })}
           >
             Mon
           </button>
-          <button>Tue</button>
-          <button>Wed</button>
-          <button>Thur</button>
+          <button
+            className={css({
+              px: "8",
+              py: "4",
+              fontWeight: "semibold",
+              flex: "1",
+              borderRadius: "2xl",
+              textStyle: "body.large",
+              layerStyle: "control.disabled",
+              color: "gray.400",
+            })}
+          >
+            Tue
+          </button>
+          <button
+            className={css({
+              px: "8",
+              py: "4",
+              fontWeight: "semibold",
+              flex: "1",
+              borderRadius: "2xl",
+              textStyle: "body.large",
+              layerStyle: "control.selected",
+            })}
+          >
+            Wed
+          </button>
+          <button
+            className={css({
+              px: "8",
+              py: "4",
+              fontWeight: "semibold",
+              flex: "1",
+              borderRadius: "2xl",
+              textStyle: "body.large",
+              layerStyle: "surface.outline",
+            })}
+          >
+            Thur
+          </button>
         </div>
       </div>
     </div>

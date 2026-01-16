@@ -190,6 +190,7 @@ export const SlotRecipesEx = () => {
           checked={checked[i]}
           size="md"
           index={i}
+          key={i}
         />
       ))}
       <div className={css({ mt: "0.25rem" })}>Size = Small</div>
@@ -200,6 +201,7 @@ export const SlotRecipesEx = () => {
           checked={checked[i]}
           size="sm"
           index={i}
+          key={i}
         />
       ))}
     </div>

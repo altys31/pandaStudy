@@ -25,6 +25,11 @@ import { DesignTokens } from "./pages/Design Tokens/DesignTokens";
 import { DesignTokensExcercise } from "./pages/Design Tokens/Excercise";
 import { EmotionStyledMigration } from "./pages/Migration/EmotionStyledMigration";
 import { ThemeExcercises } from "./pages/Theming/Excercises";
+import { JSXStyleProps } from "./pages/JSXstyleProps/JSXStyleProps";
+import { RecipeExcercise } from "./pages/JSXstyleProps/RecipeExcercise";
+import { ConfiguaringPackages } from "./pages/MonoRepo/ConfiguaringPackages";
+import { SharedUILibrary } from "./pages/MonoRepo/SharedUILibrary";
+import { CustomizingPreset } from "./pages/MonoRepo/CustomizingPreset";
 
 type ExampleComponent = {
   id: string;
@@ -161,6 +166,36 @@ const examples: ExampleComponent[] = [
     name: "Excercises",
     category: "Theming",
     component: ThemeExcercises,
+  },
+  {
+    id: "jsx-style-props",
+    name: "JSX Style Props",
+    category: "JSX Style Props",
+    component: JSXStyleProps,
+  },
+  {
+    id: "jsx-style-excercise",
+    name: "Excercise",
+    category: "JSX Style Props",
+    component: RecipeExcercise,
+  },
+  {
+    id: "mono-repo-panda",
+    name: "Configuaring Package",
+    category: "MonoRepo",
+    component: ConfiguaringPackages,
+  },
+  {
+    id: "shared-ui-library",
+    name: "Shared UI Library",
+    category: "MonoRepo",
+    component: SharedUILibrary,
+  },
+  {
+    id: "customizing-preset",
+    name: "Customizing Preset",
+    category: "MonoRepo",
+    component: CustomizingPreset,
   },
 ];
 

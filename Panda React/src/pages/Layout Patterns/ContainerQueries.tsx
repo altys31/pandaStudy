@@ -30,6 +30,7 @@ export const ContainerQueries = () => {
             rounded: "8px",
             border: "1px solid",
             borderColor: "blue.200",
+            textAlign: "left",
           })}
         >
           <strong>차이점:</strong>
